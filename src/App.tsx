@@ -1,60 +1,88 @@
-import React, { useState, useEffect } from 'react'
-import Dropzone from 'react-dropzone'
-import './App.css'
+import React, { useState, useEffect } from "react";
+import Dropzone from "react-dropzone";
+import "./App.css";
+import BookingRow from "./BookingRow";
+import { Booking } from "./types";
+import { getNewBookingsFromText } from "./utils";
 
-const apiUrl = 'http://localhost:3001'
-
-type TimeStamp = string;
-type Seconds = number;
-type Booking = {
-  time: TimeStamp;
-  duration: Seconds;
-  userId: string;
-}
+const apiUrl = "http://localhost:3001";
 
 export const App = () => {
-  const [bookings, setBookings] = useState<Booking[]>([])
+  const [existingBookings, setExistingBookings] = useState<Booking[]>([]);
+  const [newBookings, setNewBookings] = useState<Booking[]>([]);
+
+  const bookingsApiUrl = `${apiUrl}/bookings`;
 
   useEffect(() => {
-    fetch(`${apiUrl}/bookings`)
+    fetch(bookingsApiUrl)
       .then((response) => response.json())
-      .then(setBookings)
-  }, [])
+      .then(setExistingBookings);
+  }, []);
+
+  const handleSubmit = () => {
+    const requestOptions = {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(newBookings),
+    };
+    fetch(bookingsApiUrl, requestOptions)
+      .then((response) => response.json())
+      .then((data) => {
+        setExistingBookings(data);
+        setNewBookings([]);
+      });
+  };
 
   const onDrop = (files: File[]) => {
-    console.log(files)
-  }
+    const csv = files[0];
+    const reader = new FileReader();
+    reader.onload = () => {
+      const text = reader.result;
+
+      if (!text || typeof text !== "string") return;
+
+      const newBookings = getNewBookingsFromText(text, existingBookings);
+      setNewBookings(newBookings);
+    };
+    reader.readAsText(csv);
+  };
 
   return (
-    <div className='App'>
-      <div className='App-header'>
-        <Dropzone accept='.csv' onDrop={onDrop}>
-        {({getRootProps, getInputProps}) => (
-          <section>
-            <div {...getRootProps()}>
-              <input {...getInputProps()} />
-              <p>Drop some files here, or click to select files</p>
-            </div>
-          </section>
-        )}
+    <div className="App">
+      <div className="App-header">
+        <Dropzone accept=".csv" onDrop={onDrop}>
+          {({ getRootProps, getInputProps }) => (
+            <section>
+              <div {...getRootProps()}>
+                <input {...getInputProps()} />
+                <p>Drop some files here, or click to select files</p>
+              </div>
+            </section>
+          )}
         </Dropzone>
       </div>
-      <div className='App-main'>
+      <div>
         <p>Existing bookings:</p>
-        {bookings.map((booking, i) => {
-          const date = new Date(booking.time)
-          const duration = booking.duration / (60 * 1000)
-          return (
-            <p key={i} className='App-booking'>
-              <span className='App-booking-time'>{date.toString()}</span>
-              <span className='App-booking-duration'>
-                {duration.toFixed(1)}
-              </span>
-              <span className='App-booking-user'>{booking.userId}</span>
-            </p>
-          )
-        })}
+        <p>
+          {existingBookings.length && (
+            <BookingRow bookings={existingBookings} />
+          )}
+        </p>
+
+        <p>New bookings:</p>
+        <p>
+          {newBookings.length ? (
+            <>
+              <BookingRow bookings={newBookings} />
+              <button onClick={handleSubmit}>
+                Submit non-conflicting bookings
+              </button>
+            </>
+          ) : (
+            "nothing to see here"
+          )}
+        </p>
       </div>
     </div>
-  )
-}
+  );
+};
