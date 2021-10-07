@@ -14,8 +14,9 @@
     "server": "node server/index.js",
     "start": "react-scripts start",
     "build": "react-scripts build",
-    "test": "react-scripts test --env=jsdom",
-    "eject": "react-scripts eject"
+    "test": "react-scripts test --env=jsdom --verbose",
+    "eject": "react-scripts eject",
+    "fix-js": "prettier-eslint --write \"$(pwd)/src/**/*.{ts,tsx}\""
   },
   "browserslist": {
     "production": [
@@ -30,8 +31,14 @@
     ]
   },
   "devDependencies": {
+    "@types/jest": "^27.0.2",
     "@types/react": "^17.0.22",
     "@types/react-dom": "^17.0.9",
+    "@typescript-eslint/eslint-plugin": "^4.32.0",
+    "@typescript-eslint/parser": "^4.32.0",
+    "body-parser": "^1.19.0",
+    "prettier": "^2.4.1",
+    "prettier-eslint-cli": "^5.0.1",
     "typescript": "^4.4.3"
   }
 }

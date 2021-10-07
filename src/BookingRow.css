@@ -1,0 +1,14 @@
+.booking-row {
+    font-size: 15px;
+    cursor: pointer;
+}
+
+.booking-block {
+    height: 10px;
+    background-color: grey;
+}
+
+.available-block {
+    height: 10px;
+    background-color: gainsboro;
+}
